@@ -19,8 +19,8 @@ import weakref
 
 class AnalyticsManager:
 
-    __BATCH_REPORT_STOP_CHECK_INTERVAL = 10
-    __BATCH_REPORT_SLEEP_INTERVAL = 90
+    _BATCH_REPORT_STOP_CHECK_INTERVAL = 10
+    _BATCH_REPORT_SLEEP_INTERVAL = 90
 
     def __init__(self, license_key: str, environment_name: str):
         print("Initializing Analytics Manager")
@@ -58,11 +58,11 @@ class AnalyticsManager:
             elapsed_time = 0
 
             while not self.__stop_reporting:
-                while elapsed_time < self.__BATCH_REPORT_SLEEP_INTERVAL:
+                while elapsed_time < self._BATCH_REPORT_SLEEP_INTERVAL:
                     # Sleep for the interval time
-                    time.sleep(self.__BATCH_REPORT_STOP_CHECK_INTERVAL)
+                    time.sleep(self._BATCH_REPORT_STOP_CHECK_INTERVAL)
                     # Increment the elapsed time
-                    elapsed_time += self.__BATCH_REPORT_STOP_CHECK_INTERVAL
+                    elapsed_time += self._BATCH_REPORT_STOP_CHECK_INTERVAL
                     # Check if the reporting should be stopped
                     if self.__stop_reporting:
                         break
