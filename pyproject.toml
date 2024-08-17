@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0", "newrelic_telemetry_sdk==0.5.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "analytics-manager"
+version = "1.0.0"
+authors = [
+  { name="Rudra Sikri", email="rudrasikri12@gmail.com" },
+]
+description = "A small package to easily interface with the New Relic Telemetry SDK"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+Homepage = "https://github.com/rudra-cruv/analytics-manager"
+Issues = "https://github.com/rudra-cruv/analytics-manager/issues"

@@ -1,0 +1,1 @@
+newrelic_telemetry_sdk==0.5.1
