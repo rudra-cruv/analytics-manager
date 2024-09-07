@@ -201,8 +201,7 @@ class AnalyticsManager:
         Returns:
             dict: The attributes with the environment name added.
         """
-        attributes["meta"] = attributes.get("meta", {})
-        attributes["meta"]["environment"] = self.__environment_name
+        attributes["environment"] = self.__environment_name
         return attributes
 
     def __validate_attributes(self, attributes: dict):
