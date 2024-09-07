@@ -1,4 +1,5 @@
 from newrelic_telemetry_sdk import EventClient, LogClient, MetricClient, SpanClient
+from configurations.config import NewRelicConfig
 from newrelic_telemetry_sdk import (
     Event,
     Log,
@@ -19,10 +20,13 @@ import weakref
 
 class AnalyticsManager:
 
-    _BATCH_REPORT_STOP_CHECK_INTERVAL = 10
-    _BATCH_REPORT_SLEEP_INTERVAL = 90
-
-    def __init__(self, license_key: str, environment_name: str):
+    def __init__(
+        self,
+        license_key: str,
+        environment_name: str,
+        batch_report_stop_check_interval: int = 10,
+        batch_report_sleep_interval: int = 90,
+    ):
         print("Initializing Analytics Manager")
         self.__environment_name = environment_name
 
@@ -36,6 +40,9 @@ class AnalyticsManager:
         self._metrics = []
         self._spans = []
 
+        self.__BATCH_REPORT_STOP_CHECK_INTERVAL = batch_report_stop_check_interval
+        self.__BATCH_REPORT_SLEEP_INTERVAL = batch_report_sleep_interval
+
         self.__executor = ThreadPoolExecutor(max_workers=5)
         self.__stop_reporting = False
         self.__report()
@@ -43,12 +50,22 @@ class AnalyticsManager:
         # Shutdown the Analytics Manager on destruction
         weakref.finalize(self, self.__shutdown)
 
+    @property
+    def data_to_report_exists(self):
+        return (
+            len(self._events) > 0
+            or len(self._logs) > 0
+            or len(self._metrics) > 0
+            or len(self._spans) > 0
+        )
+
     def __shutdown(self):
         """Shutdown the Analytics Manager."""
         print("Shutting down Analytics Manager")
         self.__stop_reporting = True
         self.__batch_reporting_thread.join()
-        self.__send_data()  # Send any remaining data
+        if self.data_to_report_exists:
+            self.__send_data()  # Send any remaining data using the main thread before shutdown
         self.__executor.shutdown(wait=True)
 
     def __report(self):
@@ -58,11 +75,11 @@ class AnalyticsManager:
             elapsed_time = 0
 
             while not self.__stop_reporting:
-                while elapsed_time < self._BATCH_REPORT_SLEEP_INTERVAL:
+                while elapsed_time < self.__BATCH_REPORT_SLEEP_INTERVAL:
                     # Sleep for the interval time
-                    time.sleep(self._BATCH_REPORT_STOP_CHECK_INTERVAL)
+                    time.sleep(self.__BATCH_REPORT_STOP_CHECK_INTERVAL)
                     # Increment the elapsed time
-                    elapsed_time += self._BATCH_REPORT_STOP_CHECK_INTERVAL
+                    elapsed_time += self.__BATCH_REPORT_STOP_CHECK_INTERVAL
                     # Check if the reporting should be stopped
                     if self.__stop_reporting:
                         break
@@ -77,7 +94,6 @@ class AnalyticsManager:
         self.__batch_reporting_thread = threading.Thread(target=worker)
         self.__batch_reporting_thread.daemon = True
         self.__batch_reporting_thread.start()
-
 
     def __send_batch(self, dt_type: str, client: Client):
         """Send a batch of data to New Relic.
@@ -95,7 +111,7 @@ class AnalyticsManager:
 
         try:
             resp: HTTPResponse = client.send_batch(data)
-            if not resp.status in [200, 201, 202]:
+            if resp.status in [200, 201, 202]:
                 setattr(self, dt_type, [])
                 print(
                     f"Successfully sent data of type: {dt_type.lstrip('_')}, status code: {resp.status}"
@@ -109,6 +125,9 @@ class AnalyticsManager:
 
     def __send_data(self):
         """Send all data to New Relic."""
+        if not self.data_to_report_exists:
+            return
+
         print("Sending data to New Relic")
 
         events_batch = None
