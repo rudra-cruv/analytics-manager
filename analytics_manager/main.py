@@ -378,11 +378,11 @@ class AnalyticsManager:
         self,
         span_name: str,
         attributes: dict,
-        guid: str,
-        trace_id: str,
-        parent_id: str,
-        start_time_ms: int,
-        duration_ms: int,
+        trace_id: str = None,
+        start_time_ms: int = None,
+        duration_ms: int = None,
+        guid: str = None,
+        parent_id: str = None,
         immediate: bool = False,
     ):
         """Report a span to New Relic.
@@ -390,11 +390,11 @@ class AnalyticsManager:
         Args:
             span_name (str): The name of the span.
             attributes (dict): The attributes of the span.
-            guid (str): The GUID of the span.
-            trace_id (str): The trace ID of the span.
-            parent_id (str): The parent ID of the span.
-            start_time_ms (int): The start time of the span.
-            duration_ms (int): The duration of the span.
+            guid (str, optional): The GUID of the span.
+            trace_id (str, optional): The trace ID of the span.
+            parent_id (str, optional): The parent ID of the span.
+            start_time_ms (int, optional): The start time of the span.
+            duration_ms (int, optional): The duration of the span.
             immediate (bool, optional): Whether to send the span immediately. Defaults to False.
         """
         span = Span(
