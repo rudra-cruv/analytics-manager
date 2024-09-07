@@ -1,5 +1,4 @@
 from newrelic_telemetry_sdk import EventClient, LogClient, MetricClient, SpanClient
-from configurations.config import NewRelicConfig
 from newrelic_telemetry_sdk import (
     Event,
     Log,
