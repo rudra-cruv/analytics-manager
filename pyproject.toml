@@ -25,4 +25,4 @@ Homepage = "https://github.com/rudra-cruv/analytics-manager"
 Issues = "https://github.com/rudra-cruv/analytics-manager/issues"
 
 [tool.setuptools.packages.find]
-include = ["src*"]
+include = ["analytics_manager*"]
