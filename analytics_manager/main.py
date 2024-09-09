@@ -204,7 +204,7 @@ class AnalyticsManager:
         attributes["environment"] = self.__environment_name
         return attributes
 
-    def __validate_attributes(self, attributes: dict):
+    def __validate_attributes(self, attributes: dict = {}):
         """Validate the attributes.
 
         Args:
@@ -229,7 +229,7 @@ class AnalyticsManager:
     def report_event(
         self,
         event_name: str,
-        attributes: dict,
+        attributes: dict = {},
         timestamp_ms: int = None,
         immediate: bool = False,
     ):
@@ -254,7 +254,7 @@ class AnalyticsManager:
     def report_log(
         self,
         log_name: str,
-        attributes: dict,
+        attributes: dict = {},
         timestamp: int = None,
         immediate: bool = False,
     ):
@@ -344,6 +344,7 @@ class AnalyticsManager:
         sum: float,
         min: float,
         max: float,
+        interval_ms: int | float,
         attributes: dict = {},
         end_time_ms: int = METRIC_DEFAULT,
         immediate: bool = False,
@@ -356,6 +357,7 @@ class AnalyticsManager:
             sum (float): The sum of the metric.
             min (float): The minimum value of the metric.
             max (float): The maximum value of the metric.
+            interval_ms (int | float): The interval of the metric.
             attributes (dict, optional): The attributes of the metric. Defaults to None.
             end_time_ms (int, optional): The end time of the metric. Defaults to METRIC_DEFAULT.
             immediate (bool, optional): Whether to send the metric immediately. Defaults to False.
@@ -366,6 +368,7 @@ class AnalyticsManager:
             sum=sum,
             min=min,
             max=max,
+            interval_ms=interval_ms,
             tags=self.__validate_attributes(attributes),
             end_time_ms=end_time_ms,
         )
@@ -377,7 +380,7 @@ class AnalyticsManager:
     def report_span(
         self,
         span_name: str,
-        attributes: dict,
+        attributes: dict = {},
         trace_id: str = None,
         start_time_ms: int = None,
         duration_ms: int = None,
