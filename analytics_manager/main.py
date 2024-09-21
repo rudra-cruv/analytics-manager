@@ -15,7 +15,7 @@ import time
 import traceback
 import threading
 import weakref
-
+import json
 
 class AnalyticsManager:
 
@@ -26,7 +26,6 @@ class AnalyticsManager:
         batch_report_stop_check_interval: int = 10,
         batch_report_sleep_interval: int = 90,
     ):
-        print("Initializing Analytics Manager")
         self.__environment_name = environment_name
 
         self.__event_client = EventClient(license_key)
@@ -48,6 +47,8 @@ class AnalyticsManager:
 
         # Shutdown the Analytics Manager on destruction
         weakref.finalize(self, self.__shutdown)
+
+        print("Analytics Manager Running...")
 
     @property
     def data_to_report_exists(self):
@@ -204,11 +205,12 @@ class AnalyticsManager:
         attributes["environment"] = self.__environment_name
         return attributes
 
-    def __validate_attributes(self, attributes: dict = {}):
+    def __validate_attributes(self, attributes: dict = {}, add_environment: bool = True):
         """Validate the attributes.
 
         Args:
             attributes (dict): The attributes to validate.
+            add_environment (bool, optional): Whether to add the environment name to the attributes. Defaults to True.
 
         Raises:
             ValueError: If any attribute has a value of None.
@@ -216,15 +218,43 @@ class AnalyticsManager:
         Returns:
             dict: The validated attributes.
         """
+        def validate_list(value: list):
+            idx_to_remove = []
+            for i, v in enumerate(value):
+                if isinstance(v, dict):
+                    value[i] = self.__validate_attributes(v, add_environment=False)
+                elif isinstance(v, list):
+                    value[i] = validate_list(v)
+                elif not isinstance(v, (str, int, float)):
+                    idx_to_remove.append(i)
+
+            for i in idx_to_remove:
+                value.pop(i)
+
+            return value
+                
+        key_to_remove = []
+
         for key, value in attributes.items():
             # No value should be None
             if value is None:
-                del attributes[key]
-            # Values should be string, int, float, list or dict
-            if not isinstance(value, (str, int, float, list, dict)):
-                raise ValueError(f"Attribute {key} has invalid value {value}")
+                key_to_remove.append(key)
+            elif isinstance(value, dict):
+                attributes[key] = self.__validate_attributes(value, add_environment=False)
+            elif isinstance(value, list):
+                attributes[key] = json.dumps(validate_list(value))
+            # Values should be string, int, float
+            elif not isinstance(value, (str, int, float)):
+                key_to_remove.append(key)
 
-        return self.__add_environment(attributes)
+        for key in key_to_remove:
+            del attributes[key]
+
+        if add_environment:
+            return self.__add_environment(attributes)
+        else:
+            return attributes
+    
 
     def report_event(
         self,
